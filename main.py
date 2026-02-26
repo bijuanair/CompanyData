@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, render_template, jsonify
 from providers.instafinancials import InstaFinancialsClient
 
-# Explicit template folder (since you chose Option B)
+# You chose Option B → templates live under web/templates
 app = Flask(__name__, template_folder="web/templates")
 
 
@@ -19,16 +19,20 @@ def index():
             error = "CIN is required"
         else:
             try:
-                # Read API key from environment
+                # Read API key from environment (Railway variable)
                 api_key = os.environ.get("INSTA_API_KEY")
                 if not api_key:
                     raise Exception("INSTA_API_KEY is not configured")
 
-                # Instantiate client with API key
+                # Instantiate Insta client
                 client = InstaFinancialsClient(api_key)
 
-                # ✅ CORRECT METHOD NAME
-                data = client.get_company(cin)
+                # ✅ CORRECT METHOD + CORRECT PARAMS
+                data = client.fetch_company_data(
+                    lookup_type="CompanyCIN",
+                    lookup_value=cin,
+                    scope="All"
+                )
 
             except Exception as e:
                 error = str(e)
