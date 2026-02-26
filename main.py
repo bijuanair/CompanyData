@@ -2,10 +2,8 @@ import os
 from flask import Flask, request, render_template, jsonify
 from providers.instafinancials import InstaFinancialsClient
 
-#app = Flask(__name__)
-#from flask import Flask
-
 app = Flask(__name__, template_folder="web/templates")
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -20,8 +18,13 @@ def index():
             error = "CIN is required"
         else:
             try:
-                client = InstaFinancialsClient()
+                api_key = os.environ.get("INSTA_API_KEY")
+                if not api_key:
+                    raise Exception("INSTA_API_KEY is not configured")
+
+                client = InstaFinancialsClient(api_key)
                 data = client.get_company_data(cin)
+
             except Exception as e:
                 error = str(e)
 
