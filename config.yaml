@@ -1,0 +1,8 @@
+insta:
+  api_key: "GfFThPBbnnOS8mCekz7PPxz0lDF9S7FLMtqt9AuIFagrJCubazDdpQ=="
+  base_url: "https://instafinancials.com/api/InstaBasic/v1/json"
+  webhook_url: "https://unobvious-flannelly-latesha.ngrok-free.dev/webhook/insta"
+ 
+app:
+  host: "127.0.0.1"
+  port: 8000
