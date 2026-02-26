@@ -1,42 +1,43 @@
 import os
-from flask import Flask, request, jsonify
-
+from flask import Flask, request, render_template, jsonify
 from providers.instafinancials import InstaFinancialsClient
 
-# Flask app object (THIS IS CRITICAL for gunicorn)
-app = Flask(__name__)
+#app = Flask(__name__)
+#from flask import Flask
+
+app = Flask(__name__, template_folder="web/templates")
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    cin = None
+    data = None
+    error = None
+
+    if request.method == "POST":
+        cin = request.form.get("cin", "").strip()
+
+        if not cin:
+            error = "CIN is required"
+        else:
+            try:
+                client = InstaFinancialsClient()
+                data = client.get_company_data(cin)
+            except Exception as e:
+                error = str(e)
+
+    return render_template(
+        "index.html",
+        cin=cin,
+        data=data,
+        error=error
+    )
 
 
-# Health check (useful for Railway / monitoring)
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
 
 
-# Home page
-@app.route("/", methods=["GET"])
-def home():
-    return "Application is running successfully 🚀"
-
-
-# Example API endpoint
-@app.route("/company", methods=["GET"])
-def get_company_data():
-    cin = request.args.get("cin")
-
-    if not cin:
-        return jsonify({"error": "cin parameter is required"}), 400
-
-    client = InstaFinancialsClient()
-    data = client.get_company_data(cin)
-
-    # Log for Railway visibility
-    print("Order accepted:", data)
-
-    return jsonify(data)
-
-
-# Local development only
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",

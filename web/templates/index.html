@@ -2,142 +2,73 @@
 <html>
 <head>
     <title>Company CIN Lookup</title>
-
     <style>
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
+            font-family: Arial, sans-serif;
             margin: 40px;
-            background-color: #fafafa;
+            background: #fafafa;
         }
-
         input {
             padding: 8px;
             width: 360px;
         }
-
         button {
-            padding: 8px 18px;
-            cursor: pointer;
+            padding: 8px 16px;
+            margin-left: 10px;
         }
-
-        /* Tabs */
-        .tabs {
-            margin-top: 25px;
-        }
-
-        .tab-buttons {
-            display: flex;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .tab-buttons button {
-            background: none;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .tab-buttons button.active {
-            border-bottom: 3px solid #4a90e2;
-            color: #000;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 15px;
-            background-color: #ffffff;
-        }
-
-        th {
-            background-color: #eef3fb;
-            padding: 10px;
-            text-align: left;
-        }
-
-        td {
-            padding: 9px;
-            border-bottom: 1px solid #eee;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9fbff;
-        }
-
         .error {
-            color: #b00020;
+            color: red;
             margin-top: 15px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 13px;
         }
     </style>
-
-    <script>
-        function showTab(tabId) {
-            document.querySelectorAll(".tab-content").forEach(el => {
-                el.classList.remove("active");
-            });
-            document.querySelectorAll(".tab-buttons button").forEach(btn => {
-                btn.classList.remove("active");
-            });
-            document.getElementById(tabId).classList.add("active");
-            document.getElementById("btn-" + tabId).classList.add("active");
-        }
-    </script>
 </head>
-
 <body>
 
 <h2>Company CIN Lookup</h2>
 
 <form method="POST">
-    <input type="text" name="cin" placeholder="Enter Company CIN" required />
-    <button type="submit">Process</button>
+    <input
+        type="text"
+        name="cin"
+        placeholder="Enter CIN (e.g. L23201MH1959GOI011388)"
+        value="{{ cin or '' }}"
+        required
+    />
+    <button type="submit">Search</button>
 </form>
 
 {% if error %}
-    <p class="error">{{ error }}</p>
+    <div class="error">{{ error }}</div>
 {% endif %}
 
-{% if grouped_result %}
-<div class="tabs">
+{% if data %}
+    {% set summary = data.get("InstaBasic", {}).get("CompanyMasterSummary", {}) %}
 
-    <div class="tab-buttons">
-        {% for section in grouped_result.keys() %}
-            <button id="btn-tab{{ loop.index }}"
-                    onclick="showTab('tab{{ loop.index }}')"
-                    class="{% if loop.first %}active{% endif %}">
-                {{ section }}
-            </button>
-        {% endfor %}
+    <div class="card">
+        <h3>{{ summary.get("CompanyName") }}</h3>
+        <p><b>CIN:</b> {{ summary.get("CompanyCin") }}</p>
+        <p><b>Status:</b> {{ summary.get("CompanyMcaStatus") }}</p>
+        <p><b>Incorporation Date:</b> {{ summary.get("CompanyDateOfInc") }}</p>
+        <p><b>Paid-up Capital:</b> {{ summary.get("CompanyPaidUpCapital") }}</p>
     </div>
 
-    {% for section, rows in grouped_result.items() %}
-    <div id="tab{{ loop.index }}" class="tab-content {% if loop.first %}active{% endif %}">
-        <table>
-            <tr>
-                <th>Field</th>
-                <th>Value</th>
-            </tr>
-            {% for key, value in rows %}
-            <tr>
-                <td>{{ key }}</td>
-                <td>{{ value }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+    <div class="card">
+        <h3>Raw JSON</h3>
+        <pre>{{ data | tojson(indent=2) }}</pre>
     </div>
-    {% endfor %}
-
-</div>
 {% endif %}
 
 </body>
