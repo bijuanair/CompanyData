@@ -78,12 +78,6 @@ def flatten_json(data, parent_key="", sep=".", strip_prefixes=None):
 #    return items
 
 def group_by_section(flat_items):
-    """
-    Groups flattened JSON items into logical sections.
-    Example:
-    CompanyMasterSummary.*
-    DirectorSignatoryMasterBasic.DirectorCurrentMasterBasic.*
-    """
     sections = {}
 
     for key, value in flat_items:
@@ -94,9 +88,20 @@ def group_by_section(flat_items):
             subkey = key
 
         if section not in sections:
-            sections[section] = []
+            sections[section] = {}
 
-        sections[section].append((subkey, value))
+        # Special handling for Director section
+        if section == "DirectorSignatoryMasterBasic":
+            if subkey.startswith("DirectorCurrentMasterBasic"):
+                sub_section = "Current Directors"
+            elif subkey.startswith("DirectorPastMasterBasic"):
+                sub_section = "Past Directors"
+            else:
+                sub_section = "Other"
+
+            sections[section].setdefault(sub_section, []).append((subkey, value))
+        else:
+            sections[section].setdefault("Main", []).append((subkey, value))
 
     return sections
 
@@ -133,18 +138,36 @@ def index():
                 result = response
                 flat_items = flatten_json(response)
                 grouped_result = group_by_section(flat_items)
-
+                summary_data = extract_summary(flat_items)
 
             except Exception as e:
                 error = str(e)
 
     return render_template(
     "index.html",
-    result=result,
     grouped_result=grouped_result,
+    summary_data=summary_data,
     error=error
 )
 
+def extract_summary(flat_items):
+    """
+    Extract key fields for summary cards
+    """
+    summary_keys = [
+        "Response.Status",
+        "Response.RequestId",
+        "CompanyMasterSummary.CompanyStatus",
+        "CompanyMasterSummary.LastUpdatedDateTime"
+    ]
+
+    summary = {}
+
+    for key, value in flat_items:
+        if key in summary_keys:
+            summary[key.split(".")[-1]] = value
+
+    return summary
 
 # -------------------------------------------------
 # Start Flask server (DO NOT MODIFY THIS BLOCK)
