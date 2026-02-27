@@ -118,8 +118,9 @@ client = InstaFinancialsClient(
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    result = None
-    flat_result = None
+
+    grouped_result = None
+    summary_data = None
     error = None
 
     if request.method == "POST":
@@ -135,7 +136,7 @@ def index():
                     scope="All",
                     webhook_url=WEBHOOK_URL
                 )
-                result = response
+
                 flat_items = flatten_json(response)
                 grouped_result = group_by_section(flat_items)
                 summary_data = extract_summary(flat_items)
@@ -144,11 +145,11 @@ def index():
                 error = str(e)
 
     return render_template(
-    "index.html",
-    grouped_result=grouped_result,
-    summary_data=summary_data,
-    error=error
-)
+        "index.html",
+        grouped_result=grouped_result,
+        summary_data=summary_data,
+        error=error
+    )
 
 def extract_summary(flat_items):
     """
