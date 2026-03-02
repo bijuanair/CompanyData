@@ -141,9 +141,11 @@ def index():
                     webhook_url=WEBHOOK_URL
                 )
 
-                flat_items = flatten_json(response)
-                grouped_result = group_by_section(flat_items)
-                summary_data = extract_summary(flat_items)
+                grouped_result = response
+                summary_data = {
+                "Status": response.get("Response", {}).get("Status"),
+                "RequestId": response.get("Response", {}).get("RequestId")
+}
 
             except Exception as e:
                 error = str(e)
