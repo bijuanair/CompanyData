@@ -8,3 +8,7 @@ venv/
 
 # OS files
 .DS_Store
+
+# ESG raw files
+ESG/file_poller/*.pdf
+ESG/data/
